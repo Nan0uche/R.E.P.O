@@ -1,0 +1,60 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter des données météo{% endblock %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h2 class="mb-0">Ajouter des données météo</h2>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <div class="mb-3">
+                            <label for="temperature" class="form-label">Température (°C)</label>
+                            <input type="number" step="0.1" class="form-control" id="temperature" name="temperature" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="humidity" class="form-label">Humidité (%)</label>
+                            <input type="number" step="0.1" min="0" max="100" class="form-control" id="humidity" name="humidity" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="pressure" class="form-label">Pression (hPa)</label>
+                            <input type="number" step="0.1" class="form-control" id="pressure" name="pressure" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="windSpeed" class="form-label">Vitesse du vent (km/h)</label>
+                            <input type="number" step="0.1" min="0" class="form-control" id="windSpeed" name="windSpeed">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="windDirection" class="form-label">Direction du vent</label>
+                            <select class="form-select" id="windDirection" name="windDirection">
+                                <option value="">Sélectionner une direction</option>
+                                <option value="N">Nord</option>
+                                <option value="NE">Nord-Est</option>
+                                <option value="E">Est</option>
+                                <option value="SE">Sud-Est</option>
+                                <option value="S">Sud</option>
+                                <option value="SO">Sud-Ouest</option>
+                                <option value="O">Ouest</option>
+                                <option value="NO">Nord-Ouest</option>
+                            </select>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ path('app_weather_station') }}" class="btn btn-secondary me-md-2">Annuler</a>
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
