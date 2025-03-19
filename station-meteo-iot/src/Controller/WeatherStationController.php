@@ -17,9 +17,17 @@ class WeatherStationController extends AbstractController
     #[Route('/', name: 'app_weather_station_index')]
     public function index(EntityManagerInterface $entityManager): Response
     {
-        $stations = $entityManager
-            ->getRepository(WeatherStation::class)
-            ->findAll();
+        if ($this->isGranted('ROLE_ADMIN')) {
+            // L'admin voit toutes les stations
+            $stations = $entityManager
+                ->getRepository(WeatherStation::class)
+                ->findAll();
+        } else {
+            // L'utilisateur ne voit que ses stations
+            $stations = $entityManager
+                ->getRepository(WeatherStation::class)
+                ->findBy(['user' => $this->getUser()]);
+        }
 
         return $this->render('weather_station/index.html.twig', [
             'stations' => $stations,
@@ -34,6 +42,7 @@ class WeatherStationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // L'utilisateur connecté est automatiquement défini comme propriétaire
             $station->setUser($this->getUser());
             $entityManager->persist($station);
             $entityManager->flush();
@@ -48,9 +57,13 @@ class WeatherStationController extends AbstractController
     }
 
     #[Route('/{id}/edit', name: 'app_weather_station_edit')]
-    #[IsGranted('ROLE_ADMIN')]
     public function edit(Request $request, WeatherStation $station, EntityManagerInterface $entityManager): Response
     {
+        // Vérification des droits d'accès
+        if (!$this->isGranted('ROLE_ADMIN') && $station->getUser() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas le droit de modifier cette station.');
+        }
+
         $form = $this->createForm(WeatherStationType::class, $station);
         $form->handleRequest($request);
 
@@ -67,9 +80,13 @@ class WeatherStationController extends AbstractController
     }
 
     #[Route('/{id}/delete', name: 'app_weather_station_delete', methods: ['POST'])]
-    #[IsGranted('ROLE_ADMIN')]
     public function delete(Request $request, WeatherStation $station, EntityManagerInterface $entityManager): Response
     {
+        // Vérification des droits d'accès
+        if (!$this->isGranted('ROLE_ADMIN') && $station->getUser() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas le droit de supprimer cette station.');
+        }
+
         if ($this->isCsrfTokenValid('delete'.$station->getId(), $request->request->get('_token'))) {
             $entityManager->remove($station);
             $entityManager->flush();
