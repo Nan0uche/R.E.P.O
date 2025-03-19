@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Stations Météo{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center">
+        <h1>Mes Stations Météo</h1>
+        <a href="{{ path('app_weather_station_new') }}" class="btn btn-primary">
+            Nouvelle Station
+        </a>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success mt-3">
+            {{ message }}
+        </div>
+    {% endfor %}
+    
+    <div class="row mt-4">
+        {% for station in stations %}
+            <div class="col-md-4 mb-4">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ station.name }}</h5>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ station.location }}</h6>
+                        <p class="card-text">{{ station.description }}</p>
+                        <div class="badge bg-{{ station.isActive ? 'success' : 'danger' }}">
+                            {{ station.isActive ? 'Active' : 'Inactive' }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="col">
+                <p>Aucune station météo trouvée.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

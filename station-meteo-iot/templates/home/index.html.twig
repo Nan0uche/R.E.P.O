@@ -1,0 +1,19 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Accueil - Station Météo IoT{% endblock %}
+
+{% block body %}
+<div class="text-center my-5">
+    <h1 class="display-4">Bienvenue sur votre Station Météo IoT</h1>
+    <p class="lead">Système de surveillance météorologique en temps réel</p>
+    <hr class="my-4">
+    {% if app.user %}
+        <p>Connecté en tant que : {{ app.user.email }}</p>
+        <a href="{{ path('app_logout') }}" class="btn btn-primary">Déconnexion</a>
+    {% else %}
+        <p>Connectez-vous pour accéder à vos données météo</p>
+        <a href="{{ path('app_login') }}" class="btn btn-primary me-2">Connexion</a>
+        <a href="{{ path('app_register') }}" class="btn btn-success">Inscription</a>
+    {% endif %}
+</div>
+{% endblock %}
