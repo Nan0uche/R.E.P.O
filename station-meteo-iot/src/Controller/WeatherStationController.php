@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/weather')]
 class WeatherStationController extends AbstractController
@@ -44,5 +45,37 @@ class WeatherStationController extends AbstractController
         return $this->render('weather_station/new.html.twig', [
             'form' => $form->createView(),
         ]);
+    }
+
+    #[Route('/{id}/edit', name: 'app_weather_station_edit')]
+    #[IsGranted('ROLE_ADMIN')]
+    public function edit(Request $request, WeatherStation $station, EntityManagerInterface $entityManager): Response
+    {
+        $form = $this->createForm(WeatherStationType::class, $station);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $entityManager->flush();
+            $this->addFlash('success', 'La station météo a été modifiée avec succès.');
+            return $this->redirectToRoute('app_weather_station_index');
+        }
+
+        return $this->render('weather_station/edit.html.twig', [
+            'station' => $station,
+            'form' => $form->createView(),
+        ]);
+    }
+
+    #[Route('/{id}/delete', name: 'app_weather_station_delete', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function delete(Request $request, WeatherStation $station, EntityManagerInterface $entityManager): Response
+    {
+        if ($this->isCsrfTokenValid('delete'.$station->getId(), $request->request->get('_token'))) {
+            $entityManager->remove($station);
+            $entityManager->flush();
+            $this->addFlash('success', 'La station météo a été supprimée.');
+        }
+
+        return $this->redirectToRoute('app_weather_station_index');
     }
 }

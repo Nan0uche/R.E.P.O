@@ -25,9 +25,26 @@
                         <h5 class="card-title">{{ station.name }}</h5>
                         <h6 class="card-subtitle mb-2 text-muted">{{ station.location }}</h6>
                         <p class="card-text">{{ station.description }}</p>
-                        <div class="badge bg-{{ station.isActive ? 'success' : 'danger' }}">
+                        <div class="badge bg-{{ station.isActive ? 'success' : 'danger' }} mb-2">
                             {{ station.isActive ? 'Active' : 'Inactive' }}
                         </div>
+                        
+                        {% if is_granted('ROLE_ADMIN') %}
+                            <div class="mt-2">
+                                <a href="{{ path('app_weather_station_edit', {'id': station.id}) }}" 
+                                   class="btn btn-sm btn-warning">
+                                    Modifier
+                                </a>
+                                
+                                <form action="{{ path('app_weather_station_delete', {'id': station.id}) }}" 
+                                      method="post" 
+                                      style="display: inline-block"
+                                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette station ?');">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ station.id) }}">
+                                    <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
+                                </form>
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>
