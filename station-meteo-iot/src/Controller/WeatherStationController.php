@@ -17,17 +17,10 @@ class WeatherStationController extends AbstractController
     #[Route('/', name: 'app_weather_station_index')]
     public function index(EntityManagerInterface $entityManager): Response
     {
-        if ($this->isGranted('ROLE_ADMIN')) {
-            // L'admin voit toutes les stations
-            $stations = $entityManager
-                ->getRepository(WeatherStation::class)
-                ->findAll();
-        } else {
-            // L'utilisateur ne voit que ses stations
-            $stations = $entityManager
-                ->getRepository(WeatherStation::class)
-                ->findBy(['user' => $this->getUser()]);
-        }
+        // Tous les utilisateurs voient toutes les stations
+        $stations = $entityManager
+            ->getRepository(WeatherStation::class)
+            ->findAll();
 
         return $this->render('weather_station/index.html.twig', [
             'stations' => $stations,
@@ -60,7 +53,7 @@ class WeatherStationController extends AbstractController
     public function edit(Request $request, WeatherStation $station, EntityManagerInterface $entityManager): Response
     {
         // Vérification des droits d'accès
-        if (!$this->isGranted('ROLE_ADMIN') && $station->getUser() !== $this->getUser()) {
+        if (!$this->isGranted('ROLE_ADMIN') && $station->getUser()->getId() !== $this->getUser()->getId()) {
             throw $this->createAccessDeniedException('Vous n\'avez pas le droit de modifier cette station.');
         }
 
@@ -83,7 +76,7 @@ class WeatherStationController extends AbstractController
     public function delete(Request $request, WeatherStation $station, EntityManagerInterface $entityManager): Response
     {
         // Vérification des droits d'accès
-        if (!$this->isGranted('ROLE_ADMIN') && $station->getUser() !== $this->getUser()) {
+        if (!$this->isGranted('ROLE_ADMIN') && $station->getUser()->getId() !== $this->getUser()->getId()) {
             throw $this->createAccessDeniedException('Vous n\'avez pas le droit de supprimer cette station.');
         }
 
@@ -95,4 +88,4 @@ class WeatherStationController extends AbstractController
 
         return $this->redirectToRoute('app_weather_station_index');
     }
-}
+} 

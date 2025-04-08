@@ -16,37 +16,23 @@ git clone [URL_DU_REPO]
 cd station-meteo-iot
 ```
 
-2. Construire les images Docker :
+2. Construire et démarrer les conteneurs :
 ```bash
-docker compose build
+docker compose up -d --build
 ```
 
-3. Démarrer les conteneurs :
-```bash
-docker compose up -d
-```
-
-4. Installer les dépendances PHP :
-```bash
-docker compose exec php composer install
-```
-
-5. Créer la base de données :
+3. Créer la base de données et mettre à jour le schéma :
 ```bash
 docker compose exec php php bin/console doctrine:database:create
+docker compose exec php php bin/console doctrine:schema:update --force
 ```
 
-6. Créer les tables :
-```bash
-docker compose exec php php bin/console doctrine:schema:create
-```
-
-7. Charger les données initiales :
+4. Charger les données initiales :
 ```bash
 docker compose exec php php bin/console doctrine:fixtures:load
 ```
 
-8. Vider le cache :
+5. Vider le cache :
 ```bash
 docker compose exec php php bin/console cache:clear
 ```
@@ -56,7 +42,7 @@ docker compose exec php php bin/console cache:clear
 - URL : http://localhost:8000
 - Compte admin par défaut :
   - Email : admin@station.com
-  - Mot de passe : admin123
+  - Mot de passe : root
 
 ## Commandes utiles
 
@@ -99,9 +85,18 @@ docker compose build --no-cache
 docker compose up -d
 ```
 
+5. Réinitialisez la base de données :
+```bash
+docker compose exec php php bin/console doctrine:database:drop --force
+docker compose exec php php bin/console doctrine:database:create
+docker compose exec php php bin/console doctrine:schema:update --force
+docker compose exec php php bin/console doctrine:fixtures:load
+```
+
 ## Support
 
 En cas de problème, vérifiez :
 1. Que Docker Desktop est bien en cours d'exécution
 2. Que les ports 8000 et 80 sont disponibles
-3. Les logs des conteneurs avec `docker compose logs -f` 
+3. Les logs des conteneurs avec `docker compose logs -f`
+4. Les permissions des dossiers var/ et public/ si vous avez des problèmes d'accès 

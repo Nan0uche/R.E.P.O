@@ -2,9 +2,7 @@
 
 namespace App\Form;
 
-use App\Entity\User;
 use App\Entity\WeatherStation;
-use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
@@ -34,10 +32,6 @@ class WeatherStationType extends AbstractType
                 'label' => 'Station active',
                 'required' => false
             ])
-            ->add('user', EntityType::class, [
-                'class' => User::class,
-                'choice_label' => 'username',
-            ])
         ;
     }
 
@@ -47,4 +41,4 @@ class WeatherStationType extends AbstractType
             'data_class' => WeatherStation::class,
         ]);
     }
-} 
+}
