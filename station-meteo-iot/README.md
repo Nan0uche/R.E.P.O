@@ -119,25 +119,35 @@ docker compose up -d
 docker compose exec php php bin/console doctrine:database:create
 ```
 
-### Erreur lors du build Docker
+### Erreur lors du build Docker (apt-get update)
 
-Si vous rencontrez une erreur lors du build Docker (étape 2), suivez ces étapes :
+Si vous rencontrez une erreur lors du build Docker avec "apt-get update", suivez ces étapes :
 
-1. Nettoyez complètement Docker :
+1. Supprimez complètement les conteneurs et images Docker :
 ```bash
 docker compose down
-docker system prune -a
+docker system prune -af
 ```
 
-2. Reconstruisez l'image sans utiliser le cache :
+2. Nettoyez le cache Docker :
+```bash
+docker builder prune -f
+```
+
+3. Reconstruisez l'image sans utiliser le cache :
 ```bash
 docker compose build --no-cache
 ```
 
-3. Redémarrez les conteneurs :
+4. Redémarrez les conteneurs :
 ```bash
 docker compose up -d
 ```
+
+Si l'erreur persiste, essayez de :
+1. Vérifier votre connexion internet
+2. Désactiver temporairement votre pare-feu
+3. Utiliser un VPN si nécessaire
 
 ### Support
 

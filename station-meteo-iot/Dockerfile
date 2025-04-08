@@ -1,13 +1,12 @@
 FROM php:8.2-fpm
 
 # Configuration des sources apt pour éviter les erreurs de connexion
-RUN echo "deb http://archive.debian.org/debian/ bullseye main" > /etc/apt/sources.list && \
-    echo "deb http://archive.debian.org/debian-security/ bullseye-security main" >> /etc/apt/sources.list && \
-    echo "deb http://archive.debian.org/debian/ bullseye-updates main" >> /etc/apt/sources.list
+RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && \
+    sed -i 's/security.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
 
 # Installation des dépendances système avec gestion des erreurs
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     git \
     unzip \
     libzip-dev \
