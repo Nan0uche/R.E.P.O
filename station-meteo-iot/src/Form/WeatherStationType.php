@@ -36,7 +36,7 @@ class WeatherStationType extends AbstractType
             ])
             ->add('user', EntityType::class, [
                 'class' => User::class,
-                'choice_label' => 'id',
+                'choice_label' => 'username',
             ])
         ;
     }
@@ -47,4 +47,4 @@ class WeatherStationType extends AbstractType
             'data_class' => WeatherStation::class,
         ]);
     }
-}
+} 
