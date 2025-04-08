@@ -119,6 +119,26 @@ docker compose up -d
 docker compose exec php php bin/console doctrine:database:create
 ```
 
+### Erreur lors du build Docker
+
+Si vous rencontrez une erreur lors du build Docker (étape 2), suivez ces étapes :
+
+1. Nettoyez complètement Docker :
+```bash
+docker compose down
+docker system prune -a
+```
+
+2. Reconstruisez l'image sans utiliser le cache :
+```bash
+docker compose build --no-cache
+```
+
+3. Redémarrez les conteneurs :
+```bash
+docker compose up -d
+```
+
 ### Support
 
 En cas de problème, vérifiez :
