@@ -13,7 +13,7 @@ Application web de gestion de stations météo IoT développée avec Symfony 6.
 
 1. Cloner le projet :
 ```bash
-git clone [https://github.com/Nan0uche/R.E.P.O]
+git clone [URL_DU_REPO]
 cd station-meteo-iot
 ```
 
@@ -93,7 +93,33 @@ docker compose exec php php bin/console cache:clear
 - `/public` : Fichiers publics
 - `/var` : Fichiers temporaires et base de données
 
-## Support
+## Dépannage
+
+### Erreur "could not find driver" lors de la création de la base de données
+
+Si vous rencontrez l'erreur "could not find driver" lors de l'étape 5, suivez ces étapes :
+
+1. Arrêtez les conteneurs :
+```bash
+docker compose down
+```
+
+2. Reconstruisez l'image avec les extensions PHP nécessaires :
+```bash
+docker compose build
+```
+
+3. Redémarrez les conteneurs :
+```bash
+docker compose up -d
+```
+
+4. Réessayez de créer la base de données :
+```bash
+docker compose exec php php bin/console doctrine:database:create
+```
+
+### Support
 
 En cas de problème, vérifiez :
 1. Que Docker Desktop est bien en cours d'exécution
