@@ -1,18 +1,16 @@
 FROM php:8.2-fpm
 
-# Configuration des sources apt pour éviter les erreurs de connexion
-RUN sed -i 's/deb.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list && \
-    sed -i 's/security.debian.org/mirrors.ustc.edu.cn/g' /etc/apt/sources.list
-
-# Installation des dépendances système avec gestion des erreurs
+# Installation des dépendances système
 RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
     git \
     unzip \
     libzip-dev \
     libicu-dev \
-    && rm -rf /var/lib/apt/lists/* \
-    && docker-php-ext-install zip pdo pdo_sqlite intl
+    && rm -rf /var/lib/apt/lists/*
+
+# Installation des extensions PHP
+RUN docker-php-ext-install zip pdo pdo_sqlite intl
 
 # Installation de Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
@@ -23,8 +21,8 @@ WORKDIR /var/www
 # Copie des fichiers du projet
 COPY . .
 
-# Installation des dépendances PHP avec gestion des erreurs
-RUN composer install --no-interaction --no-dev --optimize-autoloader --no-scripts
+# Installation des dépendances PHP
+RUN composer install --no-interaction --no-dev --optimize-autoloader
 
 # Permissions pour le dossier var
 RUN chmod -R 777 var/
