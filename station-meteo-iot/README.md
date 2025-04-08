@@ -57,7 +57,7 @@ docker compose exec php php bin/console cache:clear
 - URL : http://localhost:8000
 - Compte admin par défaut :
   - Email : admin@station.com
-  - Mot de passe : admin123
+  - Mot de passe : root
 
 ## Commandes utiles
 
