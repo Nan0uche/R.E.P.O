@@ -12,6 +12,21 @@ Application web de gestion de stations météo IoT développée avec Symfony 6.
 
 ### Option 1 : Installation automatique (recommandée)
 
+#### Pour Windows :
+
+1. Cloner le projet :
+```bash
+git clone [URL_DU_REPO]
+cd station-meteo-iot
+```
+
+2. Exécuter le script d'installation :
+```bash
+install.bat
+```
+
+#### Pour Linux/Mac :
+
 1. Cloner le projet :
 ```bash
 git clone [URL_DU_REPO]
