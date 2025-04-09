@@ -6,10 +6,8 @@ services:
     volumes:
       - .:/var/www
       - ./var:/var/www/var
-    environment:
-      - APP_ENV=dev
-      - APP_DEBUG=1
-      - DATABASE_URL=sqlite:///%kernel.project_dir%/var/data.db
+    env_file:
+      - .env.docker
     expose:
       - "9000"
 

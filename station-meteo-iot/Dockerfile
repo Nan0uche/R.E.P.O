@@ -25,16 +25,12 @@ WORKDIR /var/www
 COPY --chown=appuser:appuser . .
 
 # Installation des dépendances PHP
-RUN composer install --no-interaction --no-dev --optimize-autoloader
+RUN composer install --no-interaction
 
 # Permissions pour le dossier var
-RUN chmod -R 777 var/ && \
+RUN mkdir -p var/cache var/log && \
+    chmod -R 777 var/ && \
     chown -R appuser:appuser var/
-
-# Configuration du cache Symfony
-RUN mkdir -p var/cache && \
-    chmod -R 777 var/cache && \
-    chown -R appuser:appuser var/cache
 
 # Changement d'utilisateur
 USER appuser
