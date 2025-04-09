@@ -4,72 +4,52 @@ Application web de gestion de stations météo IoT développée avec Symfony 6.
 
 ## Prérequis
 
-- Docker Desktop installé sur votre machine
+- PHP 8.2 ou supérieur
+- Composer
+- SQLite3
 - Git
-- Les ports 8000 et 80 disponibles
 
 ## Installation
 
-### Option 1 : Installation automatique (recommandée)
-
-#### Pour Windows :
-
 1. Cloner le projet :
 ```bash
 git clone [URL_DU_REPO]
 cd station-meteo-iot
 ```
 
-2. Exécuter le script d'installation :
+2. Installer les dépendances PHP :
 ```bash
-install.bat
+composer install
 ```
 
-#### Pour Linux/Mac :
-
-1. Cloner le projet :
+3. Créer le fichier de configuration local :
 ```bash
-git clone [URL_DU_REPO]
-cd station-meteo-iot
+cp .env.local.example .env.local
 ```
 
-2. Rendre le script d'installation exécutable :
+4. Créer la base de données :
 ```bash
-chmod +x install.sh
+php bin/console doctrine:database:create
 ```
 
-3. Exécuter le script d'installation :
+5. Créer les tables :
 ```bash
-./install.sh
+php bin/console doctrine:schema:update --force
 ```
 
-### Option 2 : Installation manuelle
-
-1. Cloner le projet :
+6. Charger les données initiales :
 ```bash
-git clone [URL_DU_REPO]
-cd station-meteo-iot
+php bin/console doctrine:fixtures:load
 ```
 
-2. Construire et démarrer les conteneurs :
+7. Vider le cache :
 ```bash
-docker compose up -d --build
+php bin/console cache:clear
 ```
 
-3. Créer la base de données et mettre à jour le schéma :
+8. Démarrer le serveur de développement :
 ```bash
-docker compose exec php php bin/console doctrine:database:create
-docker compose exec php php bin/console doctrine:schema:update --force
-```
-
-4. Charger les données initiales :
-```bash
-docker compose exec php php bin/console doctrine:fixtures:load
-```
-
-5. Vider le cache :
-```bash
-docker compose exec php php bin/console cache:clear
+symfony server:start
 ```
 
 ## Accès à l'application
@@ -81,57 +61,57 @@ docker compose exec php php bin/console cache:clear
 
 ## Commandes utiles
 
-- Voir les logs des conteneurs :
+- Démarrer le serveur de développement :
 ```bash
-docker compose logs -f
+symfony server:start
 ```
 
-- Arrêter les conteneurs :
+- Arrêter le serveur de développement :
 ```bash
-docker compose down
+symfony server:stop
 ```
 
-- Redémarrer les conteneurs :
+- Vider le cache :
 ```bash
-docker compose restart
+php bin/console cache:clear
 ```
 
 ## Dépannage
 
 Si vous rencontrez des problèmes :
 
-1. Arrêtez tous les conteneurs :
+1. Vérifiez que PHP 8.2 ou supérieur est installé :
 ```bash
-docker compose down
+php -v
 ```
 
-2. Supprimez les images :
+2. Vérifiez que Composer est installé :
 ```bash
-docker system prune -af
+composer -V
 ```
 
-3. Reconstruisez l'image :
+3. Vérifiez que SQLite3 est installé :
 ```bash
-docker compose build --no-cache
+sqlite3 --version
 ```
 
-4. Redémarrez les conteneurs :
+4. Vérifiez les permissions des dossiers :
 ```bash
-docker compose up -d
+chmod -R 777 var/
 ```
 
 5. Réinitialisez la base de données :
 ```bash
-docker compose exec php php bin/console doctrine:database:drop --force
-docker compose exec php php bin/console doctrine:database:create
-docker compose exec php php bin/console doctrine:schema:update --force
-docker compose exec php php bin/console doctrine:fixtures:load
+php bin/console doctrine:database:drop --force
+php bin/console doctrine:database:create
+php bin/console doctrine:schema:update --force
+php bin/console doctrine:fixtures:load
 ```
 
 ## Support
 
 En cas de problème, vérifiez :
-1. Que Docker Desktop est bien en cours d'exécution
-2. Que les ports 8000 et 80 sont disponibles
-3. Les logs des conteneurs avec `docker compose logs -f`
-4. Les permissions des dossiers var/ et public/ si vous avez des problèmes d'accès 
+1. Que PHP 8.2 ou supérieur est installé
+2. Que Composer est installé
+3. Que SQLite3 est installé
+4. Les permissions des dossiers var/ et public/ 
