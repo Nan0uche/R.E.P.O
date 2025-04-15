@@ -1,35 +1,101 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Station Météo - {{ weather_station.name }}{% endblock %}
+{% block title %}{{ weather_station.name }}{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .fade-in { animation: fadeIn 0.3s ease-in; }
+        @keyframes fadeIn {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
     <div class="container mt-4">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h1>{{ weather_station.name }}</h1>
+        <div class="card fade-in mb-4">
+            <div class="card-header bg-primary">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h1 class="mb-0 text-white">
+                        <i class="fas fa-cloud me-2"></i>{{ weather_station.name }}
+                    </h1>
+                    <div>
+                        <a href="{{ path('app_weather_station_details', {'macAddress': weather_station.macAddress}) }}" class="btn btn-light me-2">
+                            <i class="fas fa-info-circle me-1"></i>Détails
+                        </a>
+                        <a href="{{ path('app_weather_station_index') }}" class="btn btn-light me-2">
+                            <i class="fas fa-arrow-left me-1"></i>Retour
+                        </a>
+                        {% if is_granted('ROLE_ADMIN') or app.user == weather_station.user %}
+                            <a href="{{ path('app_weather_station_edit', {'macAddress': weather_station.macAddress}) }}" 
+                               class="btn btn-light me-2">
+                                <i class="fas fa-edit me-1"></i>Modifier
+                            </a>
+                            <form method="post" 
+                                  action="{{ path('app_weather_station_delete', {'macAddress': weather_station.macAddress}) }}" 
+                                  onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette station ?');" 
+                                  style="display: inline-block;">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ weather_station.id) }}">
+                                <button class="btn btn-danger">
+                                    <i class="fas fa-trash me-1"></i>Supprimer
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
+            
             <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <div class="card">
+                <!-- Données en temps réel -->
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="card weather-card h-100">
                             <div class="card-body text-center">
-                                <h3 class="card-title">Température</h3>
-                                <p class="display-4" id="temperature">--°C</p>
+                                <i class="fas fa-temperature-high fa-3x mb-3 text-primary"></i>
+                                <h3>Température</h3>
+                                <p class="display-4 mb-0" id="temperature">--°C</p>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-6 mb-3">
-                        <div class="card">
+                    <div class="col-md-4">
+                        <div class="card weather-card h-100">
                             <div class="card-body text-center">
-                                <h3 class="card-title">Humidité</h3>
-                                <p class="display-4" id="humidity">--%</p>
+                                <i class="fas fa-tint fa-3x mb-3 text-primary"></i>
+                                <h3>Humidité</h3>
+                                <p class="display-4 mb-0" id="humidity">--%</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card weather-card h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-wind fa-3x mb-3 text-primary"></i>
+                                <h3>Pression</h3>
+                                <p class="display-4 mb-0" id="pressure">-- hPa</p>
                             </div>
                         </div>
                     </div>
                 </div>
-                
-                <div class="text-muted text-center">
-                    Dernière mise à jour: <span id="last-update">Chargement...</span>
+
+                <!-- Graphique -->
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h3 class="mb-0">
+                            <i class="fas fa-chart-line me-2"></i>Évolution des données
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="position: relative; height:400px; width:100%">
+                            <canvas id="weatherChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="text-center text-muted mt-3">
+                    <i class="fas fa-clock me-1"></i>Dernière mise à jour: 
+                    <span id="last-update">Chargement...</span>
                 </div>
             </div>
         </div>
@@ -38,17 +104,41 @@
 
 {% block javascripts %}
     {{ parent() }}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const stationMac = "{{ weather_station.macAddress }}";
+            let weatherChart = null;
+            const maxDataPoints = 50;
+            let lastUpdateTimestamp = null;
             
             function updateWeatherData() {
                 fetch(`/weather-data/latest-by-mac/${stationMac}`)
                     .then(response => response.json())
                     .then(data => {
                         if (!data.error) {
-                            document.getElementById('temperature').textContent = `${data.temperature?.toFixed(1) || '--'}°C`;
-                            document.getElementById('humidity').textContent = `${data.humidity?.toFixed(1) || '--'}%`;
+                            // Mise à jour des valeurs avec animation
+                            ['temperature', 'humidity', 'pressure'].forEach(metric => {
+                                const element = document.getElementById(metric);
+                                const oldValue = element.textContent.split(/[°%h]/)[0];
+                                const newValue = data[metric]?.toFixed(1) || '--';
+                                
+                                if (oldValue !== newValue) {
+                                    element.classList.add('fade-in');
+                                    setTimeout(() => element.classList.remove('fade-in'), 300);
+                                }
+                                
+                                element.textContent = metric === 'temperature' ? `${newValue}°C` :
+                                                    metric === 'humidity' ? `${newValue}%` :
+                                                    `${newValue} hPa`;
+                            });
+
+                            // Si les données sont plus récentes, mettre à jour le graphique
+                            if (data.timestamp !== lastUpdateTimestamp) {
+                                lastUpdateTimestamp = data.timestamp;
+                                updateChartWithNewData(data);
+                            }
+
                             document.getElementById('last-update').textContent = data.timestamp;
                         }
                     })
@@ -56,9 +146,116 @@
                         console.error('Erreur:', error);
                     });
             }
+
+            function updateChartWithNewData(newData) {
+                if (!weatherChart) return;
+
+                const timestamp = new Date(newData.timestamp).toLocaleTimeString();
+
+                // Ajouter les nouvelles données
+                weatherChart.data.labels.push(timestamp);
+                weatherChart.data.datasets[0].data.push(newData.temperature);
+                weatherChart.data.datasets[1].data.push(newData.humidity);
+
+                // Limiter le nombre de points affichés
+                if (weatherChart.data.labels.length > maxDataPoints) {
+                    weatherChart.data.labels.shift();
+                    weatherChart.data.datasets.forEach(dataset => dataset.data.shift());
+                }
+
+                // Mise à jour du graphique avec une animation douce
+                weatherChart.update('none');
+            }
+
+            function initChart() {
+                const ctx = document.getElementById('weatherChart').getContext('2d');
+                weatherChart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: [],
+                        datasets: [
+                            {
+                                label: 'Température (°C)',
+                                borderColor: 'rgb(255, 99, 132)',
+                                backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                                data: [],
+                                fill: true,
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Humidité (%)',
+                                borderColor: 'rgb(54, 162, 235)',
+                                backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                                data: [],
+                                fill: true,
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Données en temps réel',
+                                font: { size: 16, weight: 'bold' }
+                            },
+                            tooltip: {
+                                mode: 'index',
+                                intersect: false
+                            },
+                            legend: {
+                                position: 'top'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                min: 0,
+                                max: 100,
+                                ticks: {
+                                    stepSize: 10
+                                },
+                                title: {
+                                    display: true,
+                                    text: 'Température (°C) / Humidité (%)'
+                                }
+                            }
+                        },
+                        interaction: {
+                            mode: 'nearest',
+                            axis: 'x',
+                            intersect: false
+                        },
+                        animation: {
+                            duration: 750,
+                            easing: 'easeInOutQuart'
+                        }
+                    }
+                });
+
+                // Charger l'historique initial
+                fetch(`/weather-data/history-by-mac/${stationMac}?limit=24`)
+                    .then(response => response.json())
+                    .then(response => {
+                        if (!response.error && response.data) {
+                            const data = response.data.reverse();
+                            weatherChart.data.labels = data.map(item => new Date(item.timestamp).toLocaleTimeString());
+                            weatherChart.data.datasets[0].data = data.map(item => item.temperature);
+                            weatherChart.data.datasets[1].data = data.map(item => item.humidity);
+                            weatherChart.update();
+                        }
+                    })
+                    .catch(error => console.error('Erreur chargement historique:', error));
+            }
             
-            // Mettre à jour les données toutes les 5 secondes
+            // Initialisation
+            initChart();
             updateWeatherData();
+            
+            // Mise à jour toutes les 5 secondes
             setInterval(updateWeatherData, 5000);
         });
     </script>

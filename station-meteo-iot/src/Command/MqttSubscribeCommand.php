@@ -99,8 +99,8 @@ class MqttSubscribeCommand extends Command
     public function handleMessage(string $topic, string $message): void
     {
         try {
-            // Check if the EntityManager is closed and reset it if necessary
             if (!$this->entityManager->isOpen()) {
+                $this->logger->warning('EntityManager is closed. Reopening it.');
                 $this->entityManager = $this->entityManager->getConnection()->getEntityManager();
             }
 
@@ -119,17 +119,8 @@ class MqttSubscribeCommand extends Command
                 ->findOneBy(['macAddress' => $macAddress]);
 
             if (!$station) {
-                $this->logger->info('Création d\'une nouvelle station pour l\'adresse MAC : ' . $macAddress);
-
-                $station = new WeatherStation();
-                $station->setMacAddress($macAddress);
-                $station->setName('Station ' . $macAddress);
-                $station->setLocation('Emplacement inconnu');
-                $station->setDescription('Station créée automatiquement via MQTT');
-                $station->setIsActive(true);
-
-                $this->entityManager->persist($station);
-                $this->entityManager->flush();
+                $this->logger->warning('Station non enregistrée, données ignorées. MAC : ' . $macAddress);
+                return;
             }
 
             $weatherData = new WeatherData();

@@ -1,38 +1,150 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Nouvelle Station Météo{% endblock %}
+{% block title %}Nouvelle Station{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .container {
+            max-width: 800px;
+        }
+        
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 2rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .form-control {
+            border: 1px solid rgba(44, 62, 80, 0.2);
+            border-radius: 0.25rem;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            border-color: #3498db;
+            box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+        }
+
+        .form-check-label {
+            color: #2c3e50;
+        }
+
+        textarea.form-control {
+            min-height: 120px;
+        }
+
+        .btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: #2980b9;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #95a5a6;
+            border: none;
+        }
+
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .card-body {
+            padding: 2rem;
+        }
+
+        .invalid-feedback {
+            color: #e74c3c;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
 <div class="container mt-4">
-    <h1>Créer une nouvelle station météo</h1>
+    <div class="card">
+        <div class="card-body">
+            <h1 class="text-center">
+                <i class="fas fa-plus-circle me-2"></i>
+                Nouvelle Station
+            </h1>
 
-    {{ form_start(form, {'attr': {'class': 'mt-4'}}) }}
-        <div class="mb-3">
-            {{ form_label(form.name) }}
-            {{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
-            {{ form_errors(form.name) }}
+            {{ form_start(form, {'attr': {'class': 'needs-validation'}}) }}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form_label(form.name) }}
+                            {{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.name) }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            {{ form_label(form.macAddress) }}
+                            {{ form_widget(form.macAddress, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.macAddress) }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.location) }}
+                    {{ form_widget(form.location, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.location) }}
+                </div>
+
+                <div class="form-group">
+                    {{ form_label(form.description) }}
+                    {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
+                    {{ form_errors(form.description) }}
+                </div>
+
+                <div class="form-group">
+                    <div class="form-check">
+                        {{ form_widget(form.isActive, {'attr': {'class': 'form-check-input'}}) }}
+                        {{ form_label(form.isActive, null, {'label_attr': {'class': 'form-check-label'}}) }}
+                    </div>
+                </div>
+
+                <div class="text-center mt-4">
+                    <button type="submit" class="btn btn-primary me-2">
+                        <i class="fas fa-save me-2"></i>Enregistrer
+                    </button>
+                    <a href="{{ path('app_weather_station_index') }}" class="btn btn-secondary">
+                        <i class="fas fa-times me-2"></i>Annuler
+                    </a>
+                </div>
+            {{ form_end(form) }}
         </div>
-
-        <div class="mb-3">
-            {{ form_label(form.location) }}
-            {{ form_widget(form.location, {'attr': {'class': 'form-control'}}) }}
-            {{ form_errors(form.location) }}
-        </div>
-
-        <div class="mb-3">
-            {{ form_label(form.description) }}
-            {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
-            {{ form_errors(form.description) }}
-        </div>
-
-        <div class="mb-3">
-            {{ form_widget(form.isActive) }}
-            {{ form_label(form.isActive) }}
-            {{ form_errors(form.isActive) }}
-        </div>
-
-        <button type="submit" class="btn btn-primary">Créer la station</button>
-        <a href="{{ path('app_weather_station_index') }}" class="btn btn-secondary">Retour à la liste</a>
-    {{ form_end(form) }}
+    </div>
 </div>
 {% endblock %}

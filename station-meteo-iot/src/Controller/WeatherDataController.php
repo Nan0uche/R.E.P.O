@@ -125,19 +125,28 @@ class WeatherDataController extends AbstractController
 
         $this->logger->info('Dernière donnée récupérée: ' . $latestData->getTimestamp()->format('Y-m-d H:i:s'));
 
-        $value = $latestData->getValue();
-        $data = json_decode($value, true);
+        try {
+            $value = $latestData->getValue();
+            $data = json_decode($value, true);
 
-        if (json_last_error() !== JSON_ERROR_NONE) {
-            $this->logger->error('Erreur de parsing JSON pour la valeur: ' . $value);
-            return new JsonResponse(['error' => 'Invalid data format'], 500);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new \Exception('Invalid JSON data');
+            }
+
+            return new JsonResponse([
+                'error' => false,
+                'timestamp' => $latestData->getTimestamp()->format('Y-m-d H:i:s'),
+                'temperature' => isset($data['temperature']) ? round((float)$data['temperature'], 1) : null,
+                'humidity' => isset($data['humidity']) ? round((float)$data['humidity'], 1) : null,
+                'pressure' => isset($data['pressure']) ? round((float)$data['pressure'], 1) : null,
+                'windSpeed' => isset($data['windSpeed']) ? round((float)$data['windSpeed'], 1) : null,
+                'windDirection' => isset($data['windDirection']) ? (int)$data['windDirection'] : null,
+                'rainfall' => isset($data['rainfall']) ? round((float)$data['rainfall'], 2) : null
+            ]);
+        } catch (\Exception $e) {
+            $this->logger->error('Erreur lors du traitement des données: ' . $e->getMessage());
+            return new JsonResponse(['error' => true, 'message' => 'Error processing data'], 500);
         }
-
-        return new JsonResponse([
-            'timestamp' => $latestData->getTimestamp()->format('Y-m-d H:i:s'),
-            'temperature' => floatval($data['temperature'] ?? null),
-            'humidity' => floatval($data['humidity'] ?? null)
-        ]);
     }
 
     #[Route('/weather-data/history-by-mac/{macAddress}', name: 'app_weather_data_history_by_mac', methods: ['GET'])]
@@ -152,23 +161,30 @@ class WeatherDataController extends AbstractController
         
         $limit = $request->query->getInt('limit', 24);
         
-        $weatherData = $this->entityManager->getRepository(WeatherData::class)
-            ->findBy(
-                ['station' => $station],
-                ['timestamp' => 'DESC'],
-                $limit
-            );
+        $qb = $this->entityManager->createQueryBuilder();
+        $qb->select('wd')
+           ->from(WeatherData::class, 'wd')
+           ->where('wd.station = :station')
+           ->setParameter('station', $station)
+           ->orderBy('wd.timestamp', 'DESC')
+           ->setMaxResults($limit);
+
+        $data = $qb->getQuery()->getResult();
         
         $result = [];
-        foreach ($weatherData as $data) {
-            $result[] = [
-                'timestamp' => $data->getTimestamp()->format('Y-m-d H:i:s'),
-                'type' => $data->getType(),
-                'value' => $data->getValue()
-            ];
+        foreach ($data as $item) {
+            $valueData = json_decode($item->getValue(), true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $result[] = [
+                    'timestamp' => $item->getTimestamp()->format('Y-m-d H:i:s'),
+                    'temperature' => isset($valueData['temperature']) ? round((float)$valueData['temperature'], 1) : null,
+                    'humidity' => isset($valueData['humidity']) ? round((float)$valueData['humidity'], 1) : null,
+                    'pressure' => isset($valueData['pressure']) ? round((float)$valueData['pressure'], 1) : null
+                ];
+            }
         }
         
-        return new JsonResponse([
+        return $this->json([
             'error' => false,
             'data' => $result
         ]);

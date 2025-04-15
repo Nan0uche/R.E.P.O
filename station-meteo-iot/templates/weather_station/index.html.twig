@@ -28,9 +28,22 @@
                                 <span class="badge {% if station.isActive %}bg-success{% else %}bg-danger{% endif %}">
                                     {{ station.isActive ? 'Active' : 'Inactive' }}
                                 </span>
-                                <a href="{{ path('app_weather_station_show', {'macAddress': station.macAddress}) }}" class="btn btn-sm btn-info">
-                                    <i class="fas fa-eye"></i> Voir
-                                </a>
+                                <div>
+                                    <a href="{{ path('app_weather_station_show', {'macAddress': station.macAddress}) }}" class="btn btn-sm btn-info me-2">
+                                        <i class="fas fa-eye"></i> Voir
+                                    </a>
+                                    {% if is_granted('ROLE_ADMIN') or app.user == station.user %}
+                                        <a href="{{ path('app_weather_station_edit', {'macAddress': station.macAddress}) }}" class="btn btn-sm btn-primary me-2">
+                                            <i class="fas fa-edit"></i> Modifier
+                                        </a>
+                                        <form method="post" action="{{ path('app_weather_station_delete', {'macAddress': station.macAddress}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette station ?');" style="display: inline-block;">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ station.id) }}">
+                                            <button class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </div>
                             </div>
                         </div>
                     </div>

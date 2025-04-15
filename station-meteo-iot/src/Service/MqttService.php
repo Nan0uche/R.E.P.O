@@ -8,6 +8,7 @@ use Psr\Log\LoggerInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use App\Entity\WeatherData;
 use App\Entity\WeatherStation;
+use App\Entity\User;
 
 class MqttService
 {
@@ -97,28 +98,24 @@ class MqttService
 
             $this->logger->info('Message reçu: ' . $message . ' sur topic: ' . $topic);
 
-            // Extract information from the topic (expected format: /stationMeteo/humidite/C0:49:EF:D0:16:FC)
+            // Extract information from the topic
             $topicParts = explode('/', $topic);
             if (count($topicParts) !== 4) {
                 $this->logger->error('Format de topic invalide: ' . $topic);
                 return;
             }
 
-            $type = $topicParts[2];       // humidite
-            $macAddress = $topicParts[3]; // C0:49:EF:D0:16:FC
+            $type = $topicParts[2];
+            $macAddress = $topicParts[3];
 
-            // Find or create the weather station
+            // Find the weather station
             $station = $this->entityManager->getRepository(WeatherStation::class)
                 ->findOneBy(['macAddress' => $macAddress]);
 
+            // Si la station n'existe pas, on ignore les données
             if (!$station) {
-                $station = new WeatherStation();
-                $station->setMacAddress($macAddress);
-                $station->setName('Station ' . $macAddress);
-                $station->setLocation('Emplacement inconnu');
-                $station->setDescription('Station créée automatiquement via MQTT');
-                $station->setIsActive(true);
-                $this->entityManager->persist($station);
+                $this->logger->warning('Station inconnue, données ignorées. MAC: ' . $macAddress);
+                return;
             }
 
             // Parse the JSON message

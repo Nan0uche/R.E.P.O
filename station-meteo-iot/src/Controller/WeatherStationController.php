@@ -32,6 +32,8 @@ class WeatherStationController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+            // Associer la station à l'utilisateur connecté
+            $weatherStation->setUser($this->getUser());
             $entityManager->persist($weatherStation);
             $entityManager->flush();
 
@@ -93,12 +95,16 @@ class WeatherStationController extends AbstractController
             throw $this->createNotFoundException('Station non trouvée avec l\'adresse MAC: '.$macAddress);
         }
 
+        // Vérifier si l'utilisateur a le droit de modifier cette station
+        if (!$this->isGranted('ROLE_ADMIN') && $weatherStation->getUser() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas le droit de modifier cette station');
+        }
+
         $form = $this->createForm(WeatherStationType::class, $weatherStation);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-
             return $this->redirectToRoute('app_weather_station_show', ['macAddress' => $weatherStation->getMacAddress()]);
         }
 
@@ -116,6 +122,11 @@ class WeatherStationController extends AbstractController
 
         if (!$weatherStation) {
             throw $this->createNotFoundException('Station non trouvée avec l\'adresse MAC: '.$macAddress);
+        }
+
+        // Vérifier si l'utilisateur a le droit de supprimer cette station
+        if (!$this->isGranted('ROLE_ADMIN') && $weatherStation->getUser() !== $this->getUser()) {
+            throw $this->createAccessDeniedException('Vous n\'avez pas le droit de supprimer cette station');
         }
 
         if ($this->isCsrfTokenValid('delete'.$weatherStation->getId(), $request->request->get('_token'))) {

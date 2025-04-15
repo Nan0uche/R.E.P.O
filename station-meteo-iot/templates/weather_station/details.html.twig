@@ -4,131 +4,178 @@
 
 {% block body %}
     <div class="container mt-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h1>{{ weather_station.name }} - Détails</h1>
-                <a href="{{ path('app_weather_station_show', {'macAddress': weather_station.macAddress}) }}" class="btn btn-secondary">
-                    <i class="fas fa-arrow-left"></i> Retour
-                </a>
-            </div>
-            
-            <div class="card-body">
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <h3>Informations de la station</h3>
-                        <table class="table">
-                            <tbody>
-                                <tr>
-                                    <th>Identifiant</th>
-                                    <td>{{ weather_station.id }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Nom</th>
-                                    <td>{{ weather_station.name }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Emplacement</th>
-                                    <td>{{ weather_station.location }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Description</th>
-                                    <td>{{ weather_station.description }}</td>
-                                </tr>
-                                <tr>
-                                    <th>Statut</th>
-                                    <td>
-                                        <span class="badge {% if weather_station.isActive %}bg-success{% else %}bg-danger{% endif %}">
-                                            {{ weather_station.isActive ? 'Active' : 'Inactive' }}
-                                        </span>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <p><strong>Propriétaire:</strong> 
-                            {% if weather_station.user %}
-                                {{ weather_station.user.email }}
-                            {% else %}
-                                <span class="text-muted">Non assigné</span>
-                            {% endif %}
-                        </p>
-                    </div>
-                </div>
-
-                <div class="card mb-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
                     <div class="card-header">
-                        <h3>Données en temps réel</h3>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h1 class="mb-0">
+                                <i class="fas fa-info-circle me-2"></i>{{ weather_station.name }}
+                            </h1>
+                            <div>
+                                <a href="{{ path('app_weather_station_show', {'macAddress': weather_station.macAddress}) }}" class="btn btn-light">
+                                    <i class="fas fa-chart-line me-1"></i>Vue graphique
+                                </a>
+                            </div>
+                        </div>
                     </div>
+                    
                     <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="card bg-light">
-                                    <div class="card-body text-center">
-                                        <h4>Température</h4>
-                                        <h2 id="temperature">--</h2>
-                                    </div>
-                                </div>
+                        <!-- Informations de la station -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <h3>Informations de la station</h3>
+                                <table class="table">
+                                    <tr>
+                                        <th>ID</th>
+                                        <td>{{ weather_station.id }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Adresse MAC</th>
+                                        <td>{{ weather_station.macAddress }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Localisation</th>
+                                        <td>{{ weather_station.location }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Description</th>
+                                        <td>{{ weather_station.description }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>État</th>
+                                        <td>
+                                            <span class="badge {% if weather_station.isActive %}bg-success{% else %}bg-danger{% endif %}">
+                                                {{ weather_station.isActive ? 'Active' : 'Inactive' }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </table>
                             </div>
-                            <div class="col-md-4">
-                                <div class="card bg-light">
-                                    <div class="card-body text-center">
-                                        <h4>Humidité</h4>
-                                        <h2 id="humidity">--</h2>
+                            
+                            <!-- Données en temps réel -->
+                            <div class="col-md-6">
+                                <h3>Données en temps réel</h3>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-temperature-high text-primary mb-2"></i>
+                                                <h4>Température</h4>
+                                                <h2 id="temperature">--°C</h2>
+                                            </div>
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="card bg-light">
-                                    <div class="card-body text-center">
-                                        <h4>Dernière mise à jour</h4>
-                                        <p id="last-update">--</p>
+                                    <div class="col-md-6">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-tint text-primary mb-2"></i>
+                                                <h4>Humidité</h4>
+                                                <h2 id="humidity">--%</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-wind text-primary mb-2"></i>
+                                                <h4>Pression</h4>
+                                                <h2 id="pressure">-- hPa</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center">
+                                                <i class="fas fa-clock text-primary mb-2"></i>
+                                                <h4>Mise à jour</h4>
+                                                <p id="last-update" class="mb-0">--</p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <h3>Historique des données</h3>
-                <div class="table-responsive">
-                    <table class="table table-striped">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Température</th>
-                                <th>Humidité</th>
-                                <th>Données brutes</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for data in weather_data %}
-                                <tr>
-                                    <td>{{ data.timestamp|date('d/m/Y H:i:s') }}</td>
-                                    <td>{{ data.type }}</td>
-                                    <td>
-                                        {% set valueText = data.value %}
-                                        {% if '"temperature":' in valueText %}
-                                            {{ valueText|replace({'"temperature":': '', ',': ''})|trim(' {}"')|split('"')[0] }}°C
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if '"humidity":' in valueText %}
-                                            {{ valueText|replace({'"humidity":': '', '}': ''})|trim(' {}"')|split('"')|last }}%
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                    <td><small>{{ data.value }}</small></td>
-                                </tr>
-                            {% else %}
-                                <tr>
-                                    <td colspan="5" class="text-center">Aucune donnée disponible</td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                        <!-- Historique des données -->
+                        <div class="card mt-4">
+                            <div class="card-header">
+                                <h3 class="mb-0">
+                                    <i class="fas fa-history me-2"></i>Historique des données
+                                </h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-striped table-hover" id="dataTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Date et heure</th>
+                                                <th>Type</th>
+                                                <th>Température</th>
+                                                <th>Humidité</th>
+                                                <th>Pression</th>
+                                                <th>Données brutes</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {% for data in weather_data %}
+                                                <tr>
+                                                    <td>{{ data.timestamp|date('d/m/Y H:i:s') }}</td>
+                                                    <td>{{ data.type }}</td>
+                                                    <td>
+                                                        {% set valueObj = data.value|json_decode %}
+                                                        {% if valueObj.temperature is defined %}
+                                                            {{ valueObj.temperature|number_format(1) }}°C
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if valueObj.humidity is defined %}
+                                                            {{ valueObj.humidity|number_format(1) }}%
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        {% if valueObj.pressure is defined %}
+                                                            {{ valueObj.pressure|number_format(1) }} hPa
+                                                        {% else %}
+                                                            -
+                                                        {% endif %}
+                                                    </td>
+                                                    <td>
+                                                        <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#jsonModal{{ data.id }}">
+                                                            <i class="fas fa-eye"></i>
+                                                        </button>
+                                                        
+                                                        <!-- Modal -->
+                                                        <div class="modal fade" id="jsonModal{{ data.id }}" tabindex="-1">
+                                                            <div class="modal-dialog">
+                                                                <div class="modal-content">
+                                                                    <div class="modal-header">
+                                                                        <h5 class="modal-title">Données brutes</h5>
+                                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                                    </div>
+                                                                    <div class="modal-body">
+                                                                        <pre>{{ data.value|json_encode(constant('JSON_PRETTY_PRINT')) }}</pre>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            {% else %}
+                                                <tr>
+                                                    <td colspan="6" class="text-center">Aucune donnée disponible</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -136,41 +183,153 @@
 {% endblock %}
 
 {% block javascripts %}
-{{ parent() }}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const macAddress = "{{ weather_station.macAddress }}";
-        
-        // Fonction pour extraire et afficher les données
-        function updateLatestData() {
-            fetch(`/weather-data/latest-by-mac/${macAddress}`)
-                .then(response => response.json())
-                .then(data => {
-                    if (!data.error && data.data) {
-                        try {
-                            const values = JSON.parse(data.data.value);
-                            
-                            // Mise à jour des valeurs
-                            if (values.temperature !== undefined) {
-                                document.getElementById('temperature').textContent = values.temperature + '°C';
-                            }
-                            
-                            if (values.humidity !== undefined) {
-                                document.getElementById('humidity').textContent = values.humidity + '%';
-                            }
-                            
-                            document.getElementById('last-update').textContent = data.data.timestamp;
-                        } catch (e) {
-                            console.error('Erreur lors du parsing des données JSON:', e);
+    {{ parent() }}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const macAddress = "{{ weather_station.macAddress }}";
+            let dataTable = document.getElementById('dataTable');
+            
+            function updateLatestData() {
+                fetch(`/weather-data/latest-by-mac/${macAddress}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (!data.error) {
+                            // Mise à jour des valeurs avec animation
+                            ['temperature', 'humidity', 'pressure'].forEach(metric => {
+                                const element = document.getElementById(metric);
+                                const oldValue = element.textContent.split(/[°%h]/)[0];
+                                const newValue = data[metric]?.toFixed(1) || '--';
+                                
+                                if (oldValue !== newValue) {
+                                    element.classList.add('fade-in');
+                                    setTimeout(() => element.classList.remove('fade-in'), 300);
+                                }
+                                
+                                element.textContent = metric === 'temperature' ? `${newValue}°C` :
+                                                    metric === 'humidity' ? `${newValue}%` :
+                                                    `${newValue} hPa`;
+                            });
+
+                            document.getElementById('last-update').textContent = data.timestamp;
                         }
-                    }
-                })
-                .catch(error => console.error('Erreur lors de la récupération des données:', error));
+                    })
+                    .catch(error => console.error('Erreur lors de la récupération des données:', error));
+            }
+
+            // Initialisation et mise à jour périodique
+            updateLatestData();
+            setInterval(updateLatestData, 5000);
+        });
+    </script>
+
+    <style>
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
         }
         
-        // Mettre à jour immédiatement et toutes les 5 secondes
-        updateLatestData();
-        setInterval(updateLatestData, 5000);
-    });
-</script>
+        @keyframes fadeIn {
+            0% { opacity: 0.3; }
+            100% { opacity: 1; }
+        }
+        
+        .card {
+            transition: transform 0.2s ease-in-out;
+            background: #ffffff;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            background: #2c3e50 !important;
+            color: white;
+            padding: 1rem;
+        }
+
+        .card-header h1 {
+            color: white;
+            font-size: 1.8rem;
+            font-weight: 600;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        .card-header .btn-light {
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .bg-light {
+            background: linear-gradient(to bottom right, #ffffff, #f8f9fa) !important;
+        }
+
+        h2, h3, h4 {
+            color: #2c3e50;
+        }
+
+        .text-muted {
+            color: #34495e !important;
+        }
+
+        .table {
+            color: #2c3e50;
+        }
+
+        .table th {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+        }
+
+        .modal-content {
+            background-color: #ffffff;
+            color: #2c3e50;
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #3498db, #2980b9);
+            color: white;
+        }
+
+        .modal-title {
+            color: white;
+        }
+
+        pre {
+            background-color: #f8f9fa;
+            color: #2c3e50;
+            padding: 1rem;
+            border-radius: 0.25rem;
+        }
+
+        .badge {
+            font-size: 0.9em;
+        }
+
+        .badge.bg-success {
+            background-color: #2ecc71 !important;
+        }
+
+        .badge.bg-danger {
+            background-color: #e74c3c !important;
+        }
+
+        .fas {
+            color: #3498db;
+        }
+
+        .card-header .fas {
+            color: white;
+        }
+
+        #temperature, #humidity, #pressure {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        #last-update {
+            color: #34495e;
+            font-weight: 500;
+        }
+    </style>
 {% endblock %}

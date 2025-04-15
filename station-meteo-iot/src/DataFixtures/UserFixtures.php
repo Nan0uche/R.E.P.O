@@ -20,20 +20,25 @@ class UserFixtures extends Fixture
 
     public function load(ObjectManager $manager): void
     {
-        // Création de l'utilisateur admin
-        $admin = new User();
-        $admin->setEmail('admin@station.com');
-        $admin->setUsername('admin');
-        $admin->setRoles(['ROLE_ADMIN']);
-        $admin->setIsVerified(true);
+        // Vérifier si l'utilisateur admin existe déjà
+        $existingAdmin = $manager->getRepository(User::class)->findOneBy(['email' => 'admin@station.com']);
 
-        $hashedPassword = $this->passwordHasher->hashPassword(
-            $admin,
-            'root'
-        );
-        $admin->setPassword($hashedPassword);
+        if (!$existingAdmin) {
+            // Création de l'utilisateur admin
+            $admin = new User();
+            $admin->setEmail('admin@station.com');
+            $admin->setUsername('admin');
+            $admin->setRoles(['ROLE_ADMIN']);
+            $admin->setIsVerified(true);
 
-        $manager->persist($admin);
-        $manager->flush();
+            $hashedPassword = $this->passwordHasher->hashPassword(
+                $admin,
+                'root'
+            );
+            $admin->setPassword($hashedPassword);
+
+            $manager->persist($admin);
+            $manager->flush();
+        }
     }
 }
