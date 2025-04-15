@@ -1,58 +1,42 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Stations Météo{% endblock %}
+{% block title %}Liste des Stations Météo{% endblock %}
 
 {% block body %}
 <div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center">
-        <h1>Mes Stations Météo</h1>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Liste des Stations Météo</h1>
         <a href="{{ path('app_weather_station_new') }}" class="btn btn-primary">
-            Nouvelle Station
+            <i class="fas fa-plus"></i> Nouvelle Station
         </a>
     </div>
 
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success mt-3">
-            {{ message }}
+    {% if stations is empty %}
+        <div class="alert alert-info">
+            Aucune station météo n'a été créée pour le moment.
         </div>
-    {% endfor %}
-    
-    <div class="row mt-4">
-        {% for station in stations %}
-            <div class="col-md-4 mb-4">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ station.name }}</h5>
-                        <h6 class="card-subtitle mb-2 text-muted">{{ station.location }}</h6>
-                        <p class="card-text">{{ station.description }}</p>
-                        <div class="badge bg-{{ station.isActive ? 'success' : 'danger' }} mb-2">
-                            {{ station.isActive ? 'Active' : 'Inactive' }}
-                        </div>
-                        
-                        {% if is_granted('ROLE_ADMIN') %}
-                            <div class="mt-2">
-                                <a href="{{ path('app_weather_station_edit', {'id': station.id}) }}" 
-                                   class="btn btn-sm btn-warning">
-                                    Modifier
+    {% else %}
+        <div class="row">
+            {% for station in stations %}
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ station.name }}</h5>
+                            <h6 class="card-subtitle mb-2 text-muted">{{ station.location }}</h6>
+                            <p class="card-text">{{ station.description }}</p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="badge {% if station.isActive %}bg-success{% else %}bg-danger{% endif %}">
+                                    {{ station.isActive ? 'Active' : 'Inactive' }}
+                                </span>
+                                <a href="{{ path('app_weather_station_show', {'macAddress': station.macAddress}) }}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> Voir
                                 </a>
-                                
-                                <form action="{{ path('app_weather_station_delete', {'id': station.id}) }}" 
-                                      method="post" 
-                                      style="display: inline-block"
-                                      onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette station ?');">
-                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ station.id) }}">
-                                    <button type="submit" class="btn btn-sm btn-danger">Supprimer</button>
-                                </form>
                             </div>
-                        {% endif %}
+                        </div>
                     </div>
                 </div>
-            </div>
-        {% else %}
-            <div class="col">
-                <p>Aucune station météo trouvée.</p>
-            </div>
-        {% endfor %}
-    </div>
+            {% endfor %}
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

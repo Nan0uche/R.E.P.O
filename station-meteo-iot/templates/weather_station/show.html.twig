@@ -4,35 +4,13 @@
 
 {% block body %}
     <div class="container mt-4">
-        <h1>Station Météo - {{ weather_station.name }}</h1>
-        
         <div class="card mb-4">
             <div class="card-header">
-                <h2>Informations de la station</h2>
-            </div>
-            <div class="card-body">
-                <p><strong>Nom:</strong> {{ weather_station.name }}</p>
-                <p><strong>Emplacement:</strong> {{ weather_station.location }}</p>
-                <p><strong>Description:</strong> {{ weather_station.description }}</p>
-                <p><strong>Statut:</strong> 
-                    {% if weather_station.active %}
-                        <span class="badge bg-success">Active</span>
-                    {% else %}
-                        <span class="badge bg-danger">Inactive</span>
-                    {% endif %}
-                </p>
-                <p><strong>Propriétaire:</strong> {{ weather_station.user.email }}</p>
-            </div>
-        </div>
-        
-        <div class="card mb-4">
-            <div class="card-header">
-                <h2>Données en temps réel</h2>
-                <small class="text-muted">Dernière mise à jour: <span id="last-update">Chargement...</span></small>
+                <h1>{{ weather_station.name }}</h1>
             </div>
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-6 mb-3">
                         <div class="card">
                             <div class="card-body text-center">
                                 <h3 class="card-title">Température</h3>
@@ -40,7 +18,7 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 mb-3">
+                    <div class="col-md-6 mb-3">
                         <div class="card">
                             <div class="card-body text-center">
                                 <h3 class="card-title">Humidité</h3>
@@ -48,154 +26,40 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <h3 class="card-title">Pression</h3>
-                                <p class="display-4" id="pressure">-- hPa</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <h3 class="card-title">Vitesse du vent</h3>
-                                <p class="display-4" id="wind-speed">-- km/h</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <h3 class="card-title">Direction du vent</h3>
-                                <p class="display-4" id="wind-direction">--°</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <div class="card">
-                            <div class="card-body text-center">
-                                <h3 class="card-title">Précipitations</h3>
-                                <p class="display-4" id="rainfall">-- mm</p>
-                            </div>
-                        </div>
-                    </div>
+                
+                <div class="text-muted text-center">
+                    Dernière mise à jour: <span id="last-update">Chargement...</span>
                 </div>
             </div>
-        </div>
-        
-        <div class="card mb-4">
-            <div class="card-header">
-                <h2>Historique des données</h2>
-            </div>
-            <div class="card-body">
-                <canvas id="weather-chart" width="400" height="200"></canvas>
-            </div>
-        </div>
-        
-        <div class="d-flex justify-content-between">
-            <a href="{{ path('app_weather_station_index') }}" class="btn btn-secondary">Retour à la liste</a>
-            
-            {% if is_granted('ROLE_ADMIN') or app.user == weather_station.user %}
-                <div>
-                    <a href="{{ path('app_weather_station_edit', {'id': weather_station.id}) }}" class="btn btn-primary">Modifier</a>
-                    <form method="post" action="{{ path('app_weather_station_delete', {'id': weather_station.id}) }}" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette station ?');" style="display: inline-block;">
-                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ weather_station.id) }}">
-                        <button class="btn btn-danger">Supprimer</button>
-                    </form>
-                </div>
-            {% endif %}
         </div>
     </div>
 {% endblock %}
 
 {% block javascripts %}
     {{ parent() }}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const stationId = {{ weather_station.id }};
-            let weatherChart;
+            const stationMac = "{{ weather_station.macAddress }}";
             
-            // Fonction pour mettre à jour les données en temps réel
             function updateWeatherData() {
-                fetch(`/weather-data/latest/${stationId}`)
+                fetch(`/weather-data/latest-by-mac/${stationMac}`)
                     .then(response => response.json())
                     .then(data => {
-                        if (data.error) {
-                            console.error(data.error);
-                            return;
+                        if (!data.error) {
+                            document.getElementById('temperature').textContent = `${data.temperature?.toFixed(1) || '--'}°C`;
+                            document.getElementById('humidity').textContent = `${data.humidity?.toFixed(1) || '--'}%`;
+                            document.getElementById('last-update').textContent = data.timestamp;
                         }
-                        
-                        document.getElementById('temperature').textContent = `${data.data.temperature || '--'}°C`;
-                        document.getElementById('humidity').textContent = `${data.data.humidity || '--'}%`;
-                        document.getElementById('pressure').textContent = `${data.data.pressure || '--'} hPa`;
-                        document.getElementById('wind-speed').textContent = `${data.data.windSpeed || '--'} km/h`;
-                        document.getElementById('wind-direction').textContent = `${data.data.windDirection || '--'}°`;
-                        document.getElementById('rainfall').textContent = `${data.data.rainfall || '--'} mm`;
-                        document.getElementById('last-update').textContent = data.data.timestamp;
                     })
                     .catch(error => {
-                        console.error('Erreur lors de la récupération des données:', error);
-                    });
-            }
-            
-            // Fonction pour charger l'historique des données
-            function loadWeatherHistory() {
-                fetch(`/weather-data/history/${stationId}?limit=24`)
-                    .then(response => response.json())
-                    .then(data => {
-                        const labels = data.map(item => item.timestamp).reverse();
-                        const temperatures = data.map(item => item.temperature).reverse();
-                        const humidities = data.map(item => item.humidity).reverse();
-                        
-                        if (weatherChart) {
-                            weatherChart.destroy();
-                        }
-                        
-                        const ctx = document.getElementById('weather-chart').getContext('2d');
-                        weatherChart = new Chart(ctx, {
-                            type: 'line',
-                            data: {
-                                labels: labels,
-                                datasets: [
-                                    {
-                                        label: 'Température (°C)',
-                                        data: temperatures,
-                                        borderColor: 'rgb(255, 99, 132)',
-                                        tension: 0.1
-                                    },
-                                    {
-                                        label: 'Humidité (%)',
-                                        data: humidities,
-                                        borderColor: 'rgb(54, 162, 235)',
-                                        tension: 0.1
-                                    }
-                                ]
-                            },
-                            options: {
-                                responsive: true,
-                                scales: {
-                                    y: {
-                                        beginAtZero: true
-                                    }
-                                }
-                            }
-                        });
-                    })
-                    .catch(error => {
-                        console.error('Erreur lors de la récupération de l\'historique:', error);
+                        console.error('Erreur:', error);
                     });
             }
             
             // Mettre à jour les données toutes les 5 secondes
             updateWeatherData();
             setInterval(updateWeatherData, 5000);
-            
-            // Charger l'historique des données
-            loadWeatherHistory();
         });
     </script>
-{% endblock %} 
+{% endblock %}

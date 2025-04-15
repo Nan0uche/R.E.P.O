@@ -1,38 +1,15 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Modifier la Station Météo{% endblock %}
+{% block title %}Modifier la station - {{ weather_station.name }}{% endblock %}
 
 {% block body %}
 <div class="container mt-4">
-    <h1>Modifier la station météo</h1>
+    <h1>Modifier la station</h1>
 
-    {{ form_start(form, {'attr': {'class': 'mt-4'}}) }}
-        <div class="mb-3">
-            {{ form_label(form.name) }}
-            {{ form_widget(form.name, {'attr': {'class': 'form-control'}}) }}
-            {{ form_errors(form.name) }}
-        </div>
-
-        <div class="mb-3">
-            {{ form_label(form.location) }}
-            {{ form_widget(form.location, {'attr': {'class': 'form-control'}}) }}
-            {{ form_errors(form.location) }}
-        </div>
-
-        <div class="mb-3">
-            {{ form_label(form.description) }}
-            {{ form_widget(form.description, {'attr': {'class': 'form-control'}}) }}
-            {{ form_errors(form.description) }}
-        </div>
-
-        <div class="mb-3">
-            {{ form_widget(form.isActive) }}
-            {{ form_label(form.isActive) }}
-            {{ form_errors(form.isActive) }}
-        </div>
-
-        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
-        <a href="{{ path('app_weather_station_index') }}" class="btn btn-secondary">Retour à la liste</a>
+    {{ form_start(form) }}
+        {{ form_widget(form) }}
+        <button type="submit" class="btn btn-primary">Enregistrer</button>
+        <a href="{{ path('app_weather_station_show', {'macAddress': weather_station.macAddress}) }}" class="btn btn-secondary">Annuler</a>
     {{ form_end(form) }}
 </div>
 {% endblock %}

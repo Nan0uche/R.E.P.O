@@ -20,7 +20,7 @@ class WeatherData
     #[ORM\Column]
     private ?float $humidity = null;
 
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?float $pressure = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
@@ -29,6 +29,12 @@ class WeatherData
     #[ORM\ManyToOne(inversedBy: 'weatherData')]
     #[ORM\JoinColumn(nullable: false)]
     private ?WeatherStation $station = null;
+
+    #[ORM\Column(length: 255)]
+    private ?string $type = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    private ?string $value = null;
 
     public function getId(): ?int
     {
@@ -91,6 +97,30 @@ class WeatherData
     public function setStation(?WeatherStation $station): static
     {
         $this->station = $station;
+
+        return $this;
+    }
+
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(string $type): static
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+
+    public function getValue(): ?string
+    {
+        return $this->value;
+    }
+
+    public function setValue(?string $value): static
+    {
+        $this->value = $value;
 
         return $this;
     }

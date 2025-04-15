@@ -15,13 +15,21 @@ class WeatherStationType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $builder
+            ->add('macAddress', TextType::class, [
+                'label' => 'Adresse MAC',
+                'attr' => [
+                    'placeholder' => 'XX:XX:XX:XX:XX:XX',
+                    'pattern' => '^([0-9A-F]{2}:){5}[0-9A-F]{2}$'
+                ]
+            ])
             ->add('name', TextType::class, [
                 'label' => 'Nom de la station',
                 'attr' => ['placeholder' => 'Ex: Station Jardin']
             ])
             ->add('location', TextType::class, [
                 'label' => 'Emplacement',
-                'attr' => ['placeholder' => 'Ex: Jardin arrière']
+                'attr' => ['placeholder' => 'Ex: Jardin arrière'],
+                'required' => false
             ])
             ->add('description', TextareaType::class, [
                 'label' => 'Description',

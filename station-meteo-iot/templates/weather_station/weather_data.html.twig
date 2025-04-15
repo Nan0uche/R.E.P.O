@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Weather Data{% endblock %}
+
+{% block body %}
+    <h1>Weather Data</h1>
+    <table id="weather-data-table" border="1">
+        <thead>
+            <tr>
+                <th>Station</th>
+                <th>Temperature (°C)</th>
+                <th>Humidity (%)</th>
+                <th>Pressure (hPa)</th>
+                <th>Timestamp</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Data will be dynamically inserted here -->
+        </tbody>
+    </table>
+
+    <script>
+        async function fetchWeatherData() {
+            try {
+                const response = await fetch('/api/weather-data');
+                const data = await response.json();
+
+                const tableBody = document.querySelector('#weather-data-table tbody');
+                tableBody.innerHTML = '';
+
+                data.forEach(entry => {
+                    const row = document.createElement('tr');
+
+                    row.innerHTML = `
+                        <td>${entry.station}</td>
+                        <td>${entry.temperature ?? 'N/A'}</td>
+                        <td>${entry.humidity ?? 'N/A'}</td>
+                        <td>${entry.pressure ?? 'N/A'}</td>
+                        <td>${entry.timestamp}</td>
+                    `;
+
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching weather data:', error);
+            }
+        }
+
+        // Fetch data every 5 seconds
+        setInterval(fetchWeatherData, 5000);
+
+        // Initial fetch
+        fetchWeatherData();
+    </script>
+{% endblock %}

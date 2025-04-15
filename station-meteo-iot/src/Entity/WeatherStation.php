@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: WeatherStationRepository::class)]
 class WeatherStation
@@ -15,6 +16,14 @@ class WeatherStation
     #[ORM\GeneratedValue]
     #[ORM\Column]
     private ?int $id = null;
+
+    #[ORM\Column(length: 17, unique: true)]
+    #[Assert\NotBlank]
+    #[Assert\Regex(
+        pattern: '/^([0-9A-F]{2}:){5}[0-9A-F]{2}$/',
+        message: 'L\'adresse MAC doit être au format XX:XX:XX:XX:XX:XX'
+    )]
+    private ?string $macAddress = null;
 
     #[ORM\Column(length: 255)]
     private ?string $name = null;
@@ -28,8 +37,8 @@ class WeatherStation
     #[ORM\Column]
     private ?bool $isActive = null;
 
-    #[ORM\ManyToOne(inversedBy: 'weatherStations')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[ORM\ManyToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(name: 'user_id', referencedColumnName: 'id', nullable: true)]
     private ?User $user = null;
 
     /**
@@ -46,6 +55,17 @@ class WeatherStation
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function getMacAddress(): ?string
+    {
+        return $this->macAddress;
+    }
+
+    public function setMacAddress(string $macAddress): static
+    {
+        $this->macAddress = strtoupper($macAddress);
+        return $this;
     }
 
     public function getName(): ?string

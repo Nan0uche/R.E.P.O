@@ -27,8 +27,8 @@ class MqttSubscribeCommand extends Command
     protected function configure(): void
     {
         $this
-            ->addOption('topic', 't', InputOption::VALUE_OPTIONAL, 'MQTT topic to subscribe to', 'weather/station/#')
-            ->addOption('broker', 'b', InputOption::VALUE_OPTIONAL, 'MQTT broker host', 'localhost')
+            ->addOption('topic', 't', InputOption::VALUE_OPTIONAL, 'MQTT topic to subscribe to', '/stationMeteo/+/+')
+            ->addOption('broker', 'b', InputOption::VALUE_OPTIONAL, 'MQTT broker host', 'test.mosquitto.org')
             ->addOption('port', 'p', InputOption::VALUE_OPTIONAL, 'MQTT broker port', 1883)
             ->addOption('username', 'u', InputOption::VALUE_OPTIONAL, 'MQTT broker username', '')
             ->addOption('password', 'w', InputOption::VALUE_OPTIONAL, 'MQTT broker password', '')
@@ -50,13 +50,43 @@ class MqttSubscribeCommand extends Command
 
         try {
             $this->mqttService->connect();
-            $this->mqttService->subscribe($topic);
             
+            // Définir le callback pour les messages reçus
+            $this->mqttService->onMessage(function($topic, $message) use ($io) {
+                // Afficher le message brut pour le débogage
+                $io->text("Message reçu brut: " . print_r($message, true));
+                
+                try {
+                    // Extraire les informations du topic
+                    $topicParts = explode('/', $topic);
+                    if (count($topicParts) !== 4) {
+                        throw new \Exception("Format de topic invalide");
+                    }
+                    
+                    $type = $topicParts[2];       // type (humidite) est en position 2
+                    $macAddress = $topicParts[3]; // MAC address est en position 3
+                    
+                    $data = json_decode($message, true);
+                    if ($data) {
+                        $io->table(
+                            ['Topic', 'Type', 'MAC Address', 'Valeur'],
+                            [[$topic, $type, $macAddress, json_encode($data, JSON_PRETTY_PRINT)]]
+                        );
+                    } else {
+                        $io->text("Message reçu sur $topic (Type: $type, MAC: $macAddress): $message");
+                    }
+                } catch (\Exception $e) {
+                    $io->error("Erreur de traitement du message: " . $e->getMessage());
+                }
+            });
+            
+            $this->mqttService->subscribe($topic);
             $io->success('Successfully subscribed to MQTT topic. Waiting for messages...');
             
             // Keep the command running
             while (true) {
-                sleep(1);
+                $this->mqttService->loop();
+                usleep(100000); // 100ms pause pour ne pas surcharger le CPU
             }
             
             return Command::SUCCESS;
@@ -65,4 +95,56 @@ class MqttSubscribeCommand extends Command
             return Command::FAILURE;
         }
     }
-} 
+
+    public function handleMessage(string $topic, string $message): void
+    {
+        try {
+            // Check if the EntityManager is closed and reset it if necessary
+            if (!$this->entityManager->isOpen()) {
+                $this->entityManager = $this->entityManager->getConnection()->getEntityManager();
+            }
+
+            $this->logger->info('Message reçu : ' . $message . ' sur le topic : ' . $topic);
+
+            $topicParts = explode('/', $topic);
+            if (count($topicParts) !== 4) {
+                $this->logger->error('Format de topic invalide : ' . $topic);
+                return;
+            }
+
+            $type = $topicParts[2];
+            $macAddress = $topicParts[3];
+
+            $station = $this->entityManager->getRepository(WeatherStation::class)
+                ->findOneBy(['macAddress' => $macAddress]);
+
+            if (!$station) {
+                $this->logger->info('Création d\'une nouvelle station pour l\'adresse MAC : ' . $macAddress);
+
+                $station = new WeatherStation();
+                $station->setMacAddress($macAddress);
+                $station->setName('Station ' . $macAddress);
+                $station->setLocation('Emplacement inconnu');
+                $station->setDescription('Station créée automatiquement via MQTT');
+                $station->setIsActive(true);
+
+                $this->entityManager->persist($station);
+                $this->entityManager->flush();
+            }
+
+            $weatherData = new WeatherData();
+            $weatherData->setStation($station);
+            $weatherData->setType($type);
+            $weatherData->setValue($message);
+            $weatherData->setTimestamp(new \DateTime());
+
+            $this->entityManager->persist($weatherData);
+            $this->entityManager->flush();
+
+            $this->logger->info('Données météo enregistrées pour la station : ' . $macAddress);
+
+        } catch (\Exception $e) {
+            $this->logger->error('Erreur lors du traitement du message MQTT : ' . $e->getMessage());
+        }
+    }
+}
